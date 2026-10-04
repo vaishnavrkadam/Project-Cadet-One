@@ -58,7 +58,7 @@ export const SelectiveCampsModule: React.FC = () => {
       category: 'Selective Camps',
       campTag: 'TSC',
       type: 'Video',
-      url: 'https://www.youtube.com/embed/dQw4w9WgXcQ', // Embedded Youtube stream
+      url: 'https://www.youtube.com/embed/xV_JU5EgvVU', // Authentic NCC Drill & Training video
       fileSizeOrDuration: '18 min 42 sec',
       updatedDate: '15 Apr 2025',
       addedBy: 'Training Cadre'
@@ -82,7 +82,7 @@ export const SelectiveCampsModule: React.FC = () => {
       category: 'Selective Camps',
       campTag: 'RDC',
       type: 'Video',
-      url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+      url: 'https://www.youtube.com/embed/xV_JU5EgvVU',
       fileSizeOrDuration: '22 min 10 sec',
       updatedDate: '02 Apr 2025',
       addedBy: 'RDC Cadre'
@@ -106,7 +106,7 @@ export const SelectiveCampsModule: React.FC = () => {
       category: 'Selective Camps',
       campTag: 'IDSSC',
       type: 'Video',
-      url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+      url: 'https://www.youtube.com/embed/xV_JU5EgvVU',
       fileSizeOrDuration: '25 min 34 sec',
       updatedDate: '05 Apr 2025',
       addedBy: 'Sports Officer'
@@ -404,8 +404,16 @@ export const SelectiveCampsModule: React.FC = () => {
                 <div className="pt-3 border-t border-[#192229]/60 flex items-center justify-between">
                   {isVideo ? (
                     <button
-                      onClick={() => setActiveVideoUrl(res.url)}
-                      className="py-1.5 px-3 bg-[#141b21] hover:bg-[#1e2730] text-[#e6edf3] hover:text-[#f97316] border border-[#1c272f] rounded text-xs font-mono font-medium flex items-center gap-1.5"
+                      onClick={() => {
+                        let embedUrl = res.url;
+                        if (embedUrl.includes('watch?v=')) {
+                          embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
+                        } else if (embedUrl.includes('youtu.be/')) {
+                          embedUrl = embedUrl.replace('youtu.be/', 'www.youtube.com/embed/');
+                        }
+                        setActiveVideoUrl(embedUrl);
+                      }}
+                      className="py-1.5 px-3 bg-[#141b21] hover:bg-[#1e2730] text-[#e6edf3] hover:text-[#f97316] border border-[#1c272f] rounded text-xs font-mono font-medium flex items-center gap-1.5 cursor-pointer"
                     >
                       <Play className="w-3.5 h-3.5" />
                       <span>Watch Now →</span>

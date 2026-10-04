@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { 
   Home, 
   Crosshair, 
@@ -15,7 +16,9 @@ import {
   Bell, 
   FolderPlus,
   Compass,
-  LogOut
+  LogOut,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 export type NavTab = 
@@ -50,6 +53,7 @@ export const DashboardLayout: React.FC<LayoutProps> = ({
   headerSubtitle = 'CADET MANAGEMENT & PREPARATION PORTAL'
 }) => {
   const { currentUser, role, cadetProfile, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   // Navigation Items
   const cadetNavItems = [
@@ -134,6 +138,15 @@ export const DashboardLayout: React.FC<LayoutProps> = ({
               </div>
             </div>
           </div>
+
+          {/* Theme Toggle Button */}
+          <button
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            className="w-8 h-8 rounded bg-[#0d1317] hover:bg-[#1a232b] border border-[#1c272f] text-[#8b949e] hover:text-[#f97316] transition-colors flex items-center justify-center cursor-pointer"
+          >
+            {theme === 'dark' ? <Sun className="w-4 h-4 text-[#fbbf24]" /> : <Moon className="w-4 h-4 text-[#6366f1]" />}
+          </button>
 
           <button
             onClick={logout}

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Shield, AlertCircle, LogOut, CheckCircle2, ChevronRight, Lock } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import { Shield, AlertCircle, LogOut, CheckCircle2, ChevronRight, Lock, Sun, Moon } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const { loginWithGoogle, loading, error, currentUser, role, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [submitting, setSubmitting] = useState(false);
 
   const handleSignIn = async () => {
@@ -86,8 +88,17 @@ export const LoginPage: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="text-xs font-mono text-[#8b949e] border border-[#192229] px-3 py-1.5 rounded bg-[#090d10]">
-          UNITY AND DISCIPLINE
+        <div className="flex items-center gap-3">
+          <button
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            className="w-8 h-8 rounded bg-[#0d1317] hover:bg-[#1a232b] border border-[#1c272f] text-[#8b949e] hover:text-[#f97316] transition-colors flex items-center justify-center cursor-pointer"
+          >
+            {theme === 'dark' ? <Sun className="w-4 h-4 text-[#fbbf24]" /> : <Moon className="w-4 h-4 text-[#6366f1]" />}
+          </button>
+          <div className="text-xs font-mono text-[#8b949e] border border-[#192229] px-3 py-1.5 rounded bg-[#090d10] hidden sm:block">
+            UNITY AND DISCIPLINE
+          </div>
         </div>
       </div>
 

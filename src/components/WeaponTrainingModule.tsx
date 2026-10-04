@@ -13,9 +13,13 @@ import {
 interface PartHighlight {
   id: number;
   name: string;
-  x: string; // % from left
-  y: string; // % from top
   desc: string;
+  targetX: number; // point on rifle (percentage 0-100)
+  targetY: number;
+  labelX: number;  // point where label badge sits (percentage 0-100)
+  labelY: number;
+  elbowX?: number; // elbow joint for angled leader lines
+  elbowY?: number;
 }
 
 export const WeaponTrainingModule: React.FC = () => {
@@ -23,27 +27,178 @@ export const WeaponTrainingModule: React.FC = () => {
   const [activeStep, setActiveStep] = useState<number>(3); // 1 to 5
   const [selectedPart, setSelectedPart] = useState<PartHighlight | null>(null);
 
-  // INSAS 5.56mm Parts Coordinates mapped accurately on Rifle 1.png
+  // INSAS 5.56mm Parts with Leader Lines matching Reference 2 layout
+  // Labels are outside the rifle silhouette with crisp leader lines pointing to the parts
   const insasParts: PartHighlight[] = [
-    { id: 1, name: 'Flash Suppressor', x: '9%', y: '40%', desc: 'Birdcage type flash suppressor, accommodates blank firing attachment & rifle grenades.' },
-    { id: 2, name: 'Front Sight Block', x: '17%', y: '32%', desc: 'Protected post foresight with click adjustable elevation and drift adjustment.' },
-    { id: 3, name: 'Handguard', x: '35%', y: '38%', desc: 'Ventilated protective handguard allowing heat dissipation during continuous fire.' },
-    { id: 4, name: '30-Round Magazine', x: '49%', y: '58%', desc: 'Translucent high-strength composite magazine enabling immediate visual ammo check.' },
-    { id: 5, name: 'Receiver & Cocking Handle', x: '58%', y: '40%', desc: 'Milled steel receiver housing gas-operated rotating bolt assembly.' },
-    { id: 6, name: 'Pistol Grip & Trigger', x: '65%', y: '52%', desc: 'Ergonomic pistol grip housing trigger guard and fire selector (Safe / Single / Burst).' },
-    { id: 7, name: 'Rear Sight Aperture', x: '67%', y: '32%', desc: 'Aperture sight with 200m and 400m battle zero range settings.' },
-    { id: 8, name: 'Buttstock', x: '83%', y: '44%', desc: 'Ergonomic fixed buttstock made of durable polymer/treated wood with rubber recoil pad.' },
+    { 
+      id: 1, 
+      name: 'Front Sight', 
+      desc: 'Protected post type foresight with elevation adjustment click mechanism.', 
+      targetX: 17, 
+      targetY: 37, 
+      labelX: 9, 
+      labelY: 18,
+      elbowX: 14,
+      elbowY: 18
+    },
+    { 
+      id: 2, 
+      name: 'Handguard', 
+      desc: 'Polymer/wooden ventilated handguard protecting hands during rapid fire.', 
+      targetX: 35, 
+      targetY: 41, 
+      labelX: 28, 
+      labelY: 20,
+      elbowX: 32,
+      elbowY: 20
+    },
+    { 
+      id: 3, 
+      name: 'Magazine', 
+      desc: 'Translucent polycarbonate 30-round magazine for quick ammunition count check.', 
+      targetX: 49, 
+      targetY: 62, 
+      labelX: 32, 
+      labelY: 82,
+      elbowX: 44,
+      elbowY: 82
+    },
+    { 
+      id: 4, 
+      name: 'Bolt / Receiver', 
+      desc: 'Gas-operated rotating bolt mechanism with right-side charging handle.', 
+      targetX: 58, 
+      targetY: 42, 
+      labelX: 47, 
+      labelY: 18,
+      elbowX: 54,
+      elbowY: 18
+    },
+    { 
+      id: 5, 
+      name: 'Trigger Guard', 
+      desc: 'Hinged guard designed to fold down for use with winter gloves.', 
+      targetX: 59, 
+      targetY: 51, 
+      labelX: 52, 
+      labelY: 74,
+      elbowX: 56,
+      elbowY: 74
+    },
+    { 
+      id: 6, 
+      name: 'Rear Sight', 
+      desc: 'Aperture sight with 200m and 400m battle zero settings.', 
+      targetX: 67, 
+      targetY: 36, 
+      labelX: 64, 
+      labelY: 18,
+      elbowX: 66,
+      elbowY: 18
+    },
+    { 
+      id: 7, 
+      name: 'Stock', 
+      desc: 'Rigid fixed polymer/wooden buttstock with cleaning kit compartment.', 
+      targetX: 83, 
+      targetY: 46, 
+      labelX: 74, 
+      labelY: 68,
+      elbowX: 80,
+      elbowY: 68
+    },
+    { 
+      id: 8, 
+      name: 'Barrel & Muzzle', 
+      desc: 'Chrome-lined barrel with birdcage flash suppressor accepting NATO rifle grenades.', 
+      targetX: 8, 
+      targetY: 44, 
+      labelX: 6, 
+      labelY: 62,
+      elbowX: 8,
+      elbowY: 62
+    },
   ];
 
-  // 7.62mm SLR Parts Coordinates mapped accurately on 7.62mm SLR.png
+  // 7.62mm SLR Parts with Leader Lines
   const slrParts: PartHighlight[] = [
-    { id: 1, name: 'Flash Eliminator & Foresight', x: '10%', y: '41%', desc: 'Prong-type flash eliminator and protected foresight block.' },
-    { id: 2, name: 'Gas Regulator & Handguard', x: '28%', y: '41%', desc: 'Adjustable gas block with numbered settings (1-7) and wooden handguard.' },
-    { id: 3, name: '20-Round Box Magazine', x: '42%', y: '58%', desc: 'Steel curved detachable box magazine holding 20 rounds of 7.62×51mm.' },
-    { id: 4, name: 'Body (Receiver) & Cocking Handle', x: '49%', y: '40%', desc: 'Milled steel receiver housing tilting breech-block mechanism.' },
-    { id: 5, name: 'Pistol Grip & Trigger Assembly', x: '55%', y: '51%', desc: 'Ergonomic grip housing change lever (Safe / Repetition).' },
-    { id: 6, name: 'Backsight (Aperture)', x: '57%', y: '34%', desc: 'Folding aperture sight calibrated from 200 to 600 yards.' },
-    { id: 7, name: 'Butt (Stock)', x: '78%', y: '46%', desc: 'Hardwood butt available in short, normal, and long sizes with brass trap.' },
+    { 
+      id: 1, 
+      name: 'Flash Eliminator & Foresight', 
+      desc: 'Prong-type flash eliminator and protected foresight block.', 
+      targetX: 10, 
+      targetY: 44, 
+      labelX: 7, 
+      labelY: 20,
+      elbowX: 9,
+      elbowY: 20
+    },
+    { 
+      id: 2, 
+      name: 'Gas Regulator & Handguard', 
+      desc: 'Adjustable gas block with numbered settings (1-7) and wooden handguard.', 
+      targetX: 28, 
+      targetY: 43, 
+      labelX: 22, 
+      labelY: 20,
+      elbowX: 26,
+      elbowY: 20
+    },
+    { 
+      id: 3, 
+      name: '20-Round Box Magazine', 
+      desc: 'Steel curved detachable box magazine holding 20 rounds of 7.62×51mm.', 
+      targetX: 42, 
+      targetY: 62, 
+      labelX: 28, 
+      labelY: 82,
+      elbowX: 38,
+      elbowY: 82
+    },
+    { 
+      id: 4, 
+      name: 'Body & Cocking Handle', 
+      desc: 'Milled steel receiver housing tilting breech-block mechanism.', 
+      targetX: 49, 
+      targetY: 42, 
+      labelX: 43, 
+      labelY: 20,
+      elbowX: 47,
+      elbowY: 20
+    },
+    { 
+      id: 5, 
+      name: 'Pistol Grip & Trigger', 
+      desc: 'Ergonomic grip housing change lever (Safe / Repetition).', 
+      targetX: 55, 
+      targetY: 53, 
+      labelX: 48, 
+      labelY: 75,
+      elbowX: 52,
+      elbowY: 75
+    },
+    { 
+      id: 6, 
+      name: 'Backsight (Aperture)', 
+      desc: 'Folding aperture sight calibrated from 200 to 600 yards.', 
+      targetX: 57, 
+      targetY: 37, 
+      labelX: 62, 
+      labelY: 20,
+      elbowX: 59,
+      elbowY: 20
+    },
+    { 
+      id: 7, 
+      name: 'Hardwood Butt', 
+      desc: 'Hardwood butt available in short, normal, and long sizes with brass trap.', 
+      targetX: 78, 
+      targetY: 48, 
+      labelX: 72, 
+      labelY: 70,
+      elbowX: 76,
+      elbowY: 70
+    },
   ];
 
   const currentParts = selectedWeapon === 'insas' ? insasParts : slrParts;
@@ -52,7 +207,7 @@ export const WeaponTrainingModule: React.FC = () => {
     insas: {
       name: 'INSAS 5.56mm Rifle',
       system: 'Indian Small Arms System',
-      image: '/Rifle 1.png', // Clean transparent rifle cut-out image provided in References
+      image: '/Rifle 1.png',
       type: '5.56mm Assault Rifle',
       calibre: '5.56 × 45 mm',
       role: 'Infantry / General Purpose',
@@ -100,7 +255,7 @@ export const WeaponTrainingModule: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => { setSelectedWeapon('insas'); setSelectedPart(null); }}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold tracking-wide transition-colors ${
+            className={`px-4 py-2 rounded-lg text-xs font-semibold tracking-wide transition-colors cursor-pointer ${
               selectedWeapon === 'insas'
                 ? 'bg-[#141b21] text-[#f97316] border border-[#f97316]/40 shadow-sm'
                 : 'text-[#8b949e] hover:text-[#c9d1d9] hover:bg-[#0c1116]'
@@ -110,7 +265,7 @@ export const WeaponTrainingModule: React.FC = () => {
           </button>
           <button
             onClick={() => { setSelectedWeapon('slr'); setSelectedPart(null); }}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold tracking-wide transition-colors ${
+            className={`px-4 py-2 rounded-lg text-xs font-semibold tracking-wide transition-colors cursor-pointer ${
               selectedWeapon === 'slr'
                 ? 'bg-[#141b21] text-[#f97316] border border-[#f97316]/40 shadow-sm'
                 : 'text-[#8b949e] hover:text-[#c9d1d9] hover:bg-[#0c1116]'
@@ -128,8 +283,8 @@ export const WeaponTrainingModule: React.FC = () => {
 
       {/* Main Grid: Interactive Weapon Diagram & Specs Card */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Left & Center: Interactive Weapon Diagram */}
-        <div className="xl:col-span-2 bg-[#0c1013] border border-[#192229] rounded-xl p-6 relative flex flex-col justify-between overflow-hidden shadow-2xl min-h-[480px]">
+        {/* Left & Center: Interactive Weapon Diagram with Clean Leader Lines (Reference 2 style) */}
+        <div className="xl:col-span-2 bg-[#0c1013] border border-[#192229] rounded-xl p-6 relative flex flex-col justify-between overflow-hidden shadow-2xl min-h-[500px]">
           {/* Subtle Grid overlay */}
           <div 
             className="absolute inset-0 opacity-[0.04] pointer-events-none"
@@ -154,36 +309,74 @@ export const WeaponTrainingModule: React.FC = () => {
             </div>
           </div>
 
-          {/* Interactive Image Display Area */}
-          <div className="relative my-8 flex items-center justify-center min-h-[280px] z-10 px-4">
+          {/* Interactive Image Display Area with SVG Leader Lines */}
+          <div className="relative my-8 flex items-center justify-center min-h-[320px] z-10 w-full select-none">
             {/* The Actual Clean Weapon Image */}
             <img 
               src={currentSpec.image}
               alt={currentSpec.name}
-              className="max-h-[260px] w-auto max-w-full object-contain transition-all duration-300 drop-shadow-[0_15px_30px_rgba(0,0,0,0.85)] filter contrast-105"
+              className="max-h-[220px] w-auto max-w-[85%] object-contain transition-all duration-300 drop-shadow-[0_20px_35px_rgba(0,0,0,0.85)] filter contrast-105 pointer-events-none"
             />
 
-            {/* Interactive Part Pinpoints */}
+            {/* SVG Overlay for Leader Lines */}
+            <svg 
+              className="absolute inset-0 w-full h-full pointer-events-none z-15"
+              viewBox="0 0 100 100" 
+              preserveAspectRatio="none"
+            >
+              {currentParts.map((part) => {
+                const isSelected = selectedPart?.id === part.id;
+                const elbowX = part.elbowX ?? part.labelX;
+                const elbowY = part.elbowY ?? part.labelY;
+
+                return (
+                  <g key={`line-${part.id}`}>
+                    {/* Polyline: label -> elbow -> target */}
+                    <polyline
+                      points={`${part.labelX},${part.labelY} ${elbowX},${elbowY} ${part.targetX},${part.targetY}`}
+                      fill="none"
+                      stroke={isSelected ? '#f97316' : '#475569'}
+                      strokeWidth={isSelected ? '0.5' : '0.28'}
+                      strokeDasharray={isSelected ? 'none' : '0.8 0.4'}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="transition-colors duration-200"
+                    />
+                    {/* Small target pin circle on rifle */}
+                    <circle
+                      cx={part.targetX}
+                      cy={part.targetY}
+                      r={isSelected ? '1.0' : '0.6'}
+                      fill={isSelected ? '#f97316' : '#38bdf8'}
+                      stroke="#0c1013"
+                      strokeWidth="0.3"
+                    />
+                  </g>
+                );
+              })}
+            </svg>
+
+            {/* Interactive Part Label Badges (Positioned cleanly outside the rifle) */}
             {currentParts.map((part) => {
               const isSelected = selectedPart?.id === part.id;
               return (
                 <div
                   key={part.id}
-                  style={{ left: part.x, top: part.y }}
+                  style={{ left: `${part.labelX}%`, top: `${part.labelY}%` }}
                   className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer group z-20"
                   onClick={() => setSelectedPart(part)}
                 >
-                  <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-mono font-medium transition-all duration-200 backdrop-blur-md ${
+                  <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[11px] font-mono font-medium transition-all duration-200 backdrop-blur-md shadow-md ${
                     isSelected
-                      ? 'bg-[#f97316] text-[#06090c] border-[#f97316] font-bold shadow-lg scale-110 ring-2 ring-[#f97316]/50'
+                      ? 'bg-[#f97316] text-[#06090c] border-[#f97316] font-bold scale-110 ring-2 ring-[#f97316]/40'
                       : 'bg-[#0c1013]/90 text-[#e6edf3] border-[#273842] hover:border-[#f97316] hover:bg-[#162129]'
                   }`}>
-                    <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                    <span className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] font-bold ${
                       isSelected ? 'bg-black text-white' : 'bg-[#273842] text-[#c9d1d9]'
                     }`}>
                       {part.id}
                     </span>
-                    <span className="hidden sm:inline whitespace-nowrap">{part.name}</span>
+                    <span className="whitespace-nowrap">{part.name}</span>
                   </div>
                 </div>
               );
@@ -199,14 +392,14 @@ export const WeaponTrainingModule: React.FC = () => {
               </div>
               <button 
                 onClick={() => setSelectedPart(null)}
-                className="text-[#8b949e] hover:text-[#e6edf3] ml-4 text-[11px] underline"
+                className="text-[#8b949e] hover:text-[#e6edf3] ml-4 text-[11px] underline cursor-pointer"
               >
                 Clear
               </button>
             </div>
           ) : (
             <div className="z-10 text-[11px] text-[#484f58] font-mono text-center">
-              Click any numbered part pin to inspect technical nomenclature and training guidelines.
+              Click any numbered label to trace leader line to weapon component and read technical breakdown.
             </div>
           )}
         </div>
@@ -404,7 +597,7 @@ export const WeaponTrainingModule: React.FC = () => {
             <span>HANDLING SEQUENCE</span>
             <button
               onClick={handleNextStep}
-              className="text-[#f97316] hover:underline text-[11px] font-normal"
+              className="text-[#f97316] hover:underline text-[11px] font-normal cursor-pointer"
             >
               Advance Drill →
             </button>
@@ -495,7 +688,7 @@ export const WeaponTrainingModule: React.FC = () => {
 
           <button
             onClick={handleNextStep}
-            className="w-full mt-4 py-2.5 px-3 bg-[#141b21] hover:bg-[#1a232b] text-[#f97316] hover:text-[#fb923c] border border-[#f97316]/50 rounded-lg text-xs font-bold font-mono tracking-wider transition-all flex items-center justify-center gap-2 group shadow-md"
+            className="w-full mt-4 py-2.5 px-3 bg-[#141b21] hover:bg-[#1a232b] text-[#f97316] hover:text-[#fb923c] border border-[#f97316]/50 rounded-lg text-xs font-bold font-mono tracking-wider transition-all flex items-center justify-center gap-2 group shadow-md cursor-pointer"
           >
             <span>CONTINUE TRAINING</span>
             <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
